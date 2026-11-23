@@ -1,0 +1,11 @@
+# Executable
+snake_escape
+
+# Object files
+*.o
+
+# Backup files
+*_backup.txt
+
+# VS Code temporary files
+.vscode/
