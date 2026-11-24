@@ -60,6 +60,11 @@ Sebelum menjalankan Snake Escape, pastikan perangkat telah memiliki beberapa keb
 - Library : NCurses
 - Lingkungan Pengembangan : Visual Studio Code
 - Sistem Operasi : Linux/Ubuntu (WSL)
+
+  ## Cara Instalasi dan Menjalankan Program
+  Buka terminal lalu jalankan perintah berikut :
+  [GitHub Snake Escape](https://github.com/bahrul-codes/snake-escape)
+  
   
 
 
