@@ -1,126 +1,183 @@
 #include <ncurses.h>
-#include <unistd.h>
+#include <cstdlib>
+#include <ctime>
+
 #include "game.h"
+#include "menu.h"
 #include "snake.h"
+#include "maze.h"
 
-bool gameOver = false;
-int skor = 0;
+// Membuat posisi makanan secara acak
+void buatMakanan(Maze maze, Ular ular, int &x, int &y) {
 
-// Menampilkan Game Over
-void tampilkanGameOver() {
+    do {
+        x = rand() % MAZE_KOLOM;
+        y = rand() % MAZE_BARIS;
+
+    } while (
+        posisiTembok(maze, x, y) ||
+        posisiAdaUlar(ular, x, y) ||
+        (x == 0 && y == 1) || (x == 29 && y == 13)
+    );
+}
+
+// Menjalankan keseluruhan gameplay
+void jalankanGame() {
+
+    srand(time(0));
+
+    //Menampilkan intro dan menu
+    tampilkanIntro();
+    tampilkanPlay();
+
+    // Membuat data maze dan ular
+    Maze maze;
+    Ular ular;
+
+    inisialisasiMaze(maze);
+    inisialisasiUlar(ular);
+
+    // Membuat window maze
+    WINDOW* jendela = newwin(
+        MAZE_BARIS + 2,
+        MAZE_KOLOM + 2,
+        4,
+        5
+    );
+
+    keypad(jendela, TRUE);
+    wtimeout(jendela, 120);
+
+    int skor = 0;
+    const int TARGET = 7;
+
+    int makananX, makananY;
+
+    buatMakanan(maze, ular, makananX, makananY);
+
+    bool gameSelesai = false;
+    bool menang = false;
+
+    // Loop utama gameplay
+    while (!gameSelesai) {
+
+        // Menggambar tampilan permainan
+        clear();
+
+        mvprintw(1, 5, "SNAKE ESCAPE");
+        mvprintw(2, 5, "Makanan: %d/%d", skor, TARGET);
+
+        box(jendela, 0, 0);
+
+        gambarMaze(jendela, maze);
+
+        // Menggambar makanan
+        if (skor < TARGET) {
+            mvwaddch(
+                jendela,
+                makananY + 1,
+                makananX + 1,
+                '*'
+            );
+        }
+
+        // Menggambar ular
+        gambarUlar(jendela, ular);
+
+        refresh();
+        wrefresh(jendela);
+
+        // Membaca tombo keyboard
+        int tombol = wgetch(jendela);
+
+        if (tombol != ERR) {
+            ubahArahUlar(ular, tombol);
+        }
+
+        // Menghitung posisi ular memakan makanan
+        bool makan = (
+            skor < TARGET &&
+            nextX == makananX &&
+            nextY == makananY
+        );
+
+        // Menggerakkan ular
+        gerakkanUlar(ular, makan);
+
+        // Memeriksa tabrakan dengan dinding
+        bool kenaTembok = posisiTembok (
+            maze,
+            ular.posisiX[0],
+            ular.posisiY[0],
+        );
+
+        // Pintu keluar boleh dilewati setelah terbuka
+        if (
+            ular.posisiX[0] == 29 &&
+            ular.posisiY[0] == 13 &&
+            maze.pintuKeluarTerbuka
+        ) {
+            kenaTembok = false;
+        }
+
+        // Memeriksa tabrakan
+        if (
+            kenaTembok || tabrakanDenganDiriSendiri(ular)
+        ) {
+            gameSelesai = true;
+            menang = false;
+        }
+
+        // Jika ular memakan makanan
+        if (!gameSelesai && makan) {
+
+            skor++;
+
+            // Membuka pintu setelah 7 makanan
+            if (skor == TARGET) {
+                bukaPintuKeluar(maze);
+            }
+            else {
+                // Membuat makanan baru
+                buatMakanan(
+                    maze,
+                    ular,
+                    makananX,
+                    makananY
+                );
+            }
+        }
+
+        // Memeriksa apakah ular mencapai pintu keluar
+        if (
+            !gameSelesai &&
+            maze.pintuKeluarTerbuka &&
+            ular.posisiX[0] == 29 &&
+            ular.posisiY[0] == 13
+        ) {
+            gameSelesai = true;
+            menang = true;
+        }
+    }
+
+    // Menghapus window permainan
+    delwin(jendela);
+
+    // Menampilkan hasil permainan
     clear();
 
-    mvprintw(10, 15, "GAME OVER! ");
-    mvprintw(12, 15, "Skor: %d", skor);
-    mvprintw(14,15, "Tekan tombol apa saja untuk keluar");
+    if (menang) {
+        mvprintw(8, 20, "SELAMAT! KAMU MENANG YEY!");
+    }
+    else {
+        mvprintw(8, 25, "YAHH GAME OVER!");
+    }
+
+    mvprintw(10, 25, "Skor: %d/%d", skor, TARGET);
+    mvprintw(13, 18, "Press any key to exit...");
 
     refresh();
+    timeout();
     getch();
 }
 
-// Jeda permainan
-void jedaGame() {
-    mvprintw(0, 0, "PAUSE - Tekan SPACE untuk lanjut");
-    refresh();
-
-    while (getch() != ' ') {
-
-    }
-}
-
-// Memulai permainan 
-void mulaiGame() {
-    resetUlar();
-    skor = 0;
-    gameOver = false;
-
-}
-
-// Menjalankan permainan
-void jalankanGame() {
-    int lebar = 40;
-    int tinggi = 20;
-
-    while (!gameOver) {
-        clear();
-
-        // Membaca tombol keyboard
-        timeout(150);
-        int tombol = getch();
-
-        switch (tombol) {
-            case KEY_UP:
-            if (arahY != 1) {
-                arahX = 0;
-                arahY = -1;
-
-            }
-            break;
-
-            case KEY_DOWN:
-            if (arahY != -1) {
-                arahX = 0;
-                arahY = 1;
-
-            }
-            break;
-
-            case KEY_LEFT:
-            if (arahX != 1) {
-                arahX = -1;
-                arahY = 0;
-            }
-            break;
-
-            case KEY_RIGHT:
-            if (arahX != -1) {
-                arahX = 1;
-                arahY = 0;
-            }
-            break;
-
-            case ' ':
-            jedaGame();
-            break;
-
-        }
-
-        // Menggerakan ular
-        gerakUlar();
-
-        // Memeriksa tabrakan dengan dinding 
-        if (posisiX[0] <= 0 || posisiX[0] >= lebar -1 || 
-            posisiY[0] <= 0 || posisiY[0] >= tinggi -1) {
-            gameOver = true;
-
-         }
-
-         // Memeriksa tabrakan dengan tubuh ular sendiri
-         if (cekTabrakanUlar()) {
-            gameOver = true;
-         }
-
-         // Menggambar arena
-         for (int x = 0; x < lebar; x++) {
-             mvaddch(0, x, '#');
-             mvaddch(tinggi - 1, x, '#');
-
-         }
-
-         for (int y = 0; y < tinggi; y++) {
-             mvaddch(y, 0, '#');
-             mvaddch(y, lebar - 1, '#');
-
-             }
-         // Menggambar ular
-         for (int i = 0; i < panjangUlar; i++) {
-             mvaddch(posisiY[i], posisiX[i], 'O');
-         }
-
-         mvprintw(tinggi + 1, 0, "Sko: %d", skor);
-
-         refresh();
-    }
-
-    tampilkanGameOver();
-}

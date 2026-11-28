@@ -1,9 +1,9 @@
 #ifndef GAME_H
 #define GAME_H
 
-void mulaiGame();
+#include <ncurses.h>
+
+// Menjalankan keseluruhan gameplay
 void jalankanGame();
-void tampilkanGameOver();
-void jedaGame();
 
 #endif
