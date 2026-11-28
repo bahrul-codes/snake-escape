@@ -1,90 +1,93 @@
 #include <ncurses.h>
 #include "maze.h"
 
-WINDOW *mywin;
+// Mengatur bentuk awal maze
+void inisialisasiMaze(Maze &maze) {
 
-// Ukuran labirin
-const int BARIS = 15;
-const int KOLOM = 30;
+    const char* layout[MAZE_BARIS] = {
+        "##############################",
+        "        #              #     #",
+        "#               #      #     #",
+        "#       #       #            #",
+        "#### ####### ####### ###### ##",
+        "#       #              #     #",
+        "#               #      #     #",
+        "#       #       #            #",
+        "### ####### ####### ###### ###",
+        "#       #              #     #",
+        "#               #      #     #",
+        "#       #       #            #",
+        "##### ####### ####### ##### ##",
+        "#                            #",
+        "##############################"
+    };
 
-// Menyimpan peta labirin
-char peta[15][30];
+    // Menyalin bentuk maze ke dalam array
+    for (int y = 0; y < MAZE_BARIS; y++) {
+        for (int x = 0; x < MAZE_KOLOM; x++) {
+            maze.peta[y][x] = layout[y][x];
+        }
+    }
 
-// Membuat peta labirin
-void buatMaze() {
+    // Pintu keluar awalnya tertutup
+    maze.pintuKeluarTerbuka = false;
+}
+ 
 
-    // Mengaktifkan warna
-    start_color();
+// Menggambar maze ke layar
+void gambarMaze(WINDOW* jendela, Maze maze) {
 
-    init_pair(4, COLOR_GREEN, COLOR_BLACK);
+    for (int y = 0; y < MAZE_BARIS; y++) {
+        for (int x = 0; x < MAZE_KOLOM; x++) {
 
-    // Membuat peta dengan ruang kosong dan dinding
-    for (int i = 0; i < BARIS; i++) {
-        for (int j = 0; j < KOLOM; j++) {
+            char karakter = maze.peta[y][x];
 
-            if (i == 0 || i == BARIS - 1 || j == 0 || j == KOLOM - 1) {
-                peta[i][j] = '#'; // Dinding
-            } else {
-                peta[i][j] = ' '; // Ruang kosong
+            // Menampilkan pintu masuk
+            if (x == 0 && y == 1) {
+                karakter = 'S';
             }
+
+            // Menampilkan pintu keluar
+            else if (x == 29 && y == 13) {
+
+                if (maze.pintuKeluarTerbuka) {
+                    karakter = 'E';
+                }
+                else {
+                    karakter = 'X';
+                }
+            }
+
+            // Menggambar karakter ke dalam jendela
+            mvwaddch(jendela, y + 1, x + 1, karakter);
         }
     }
-
-    // Membuat beberapa rintangan
-    for (int j = 5; j < 23; j++) {
-        if (j != 14 ) {
-            peta[4][j] = '#';
-        }
-    }
-
-    for (int i = 6; i < 12; i++) {
-        peta[i][10] = '#';
-    }
-
-    for (int j = 15; j < 27; j++) {
-        peta[9][j] = '#';
-    }
-
-    // Membuat jendela labirin
-    mywin = newwin(17, 32, 2, 5);
-
-    // Memeriksa apakah jendela berhasil dibuat
-    if (mywin == NULL) {
-        return;
-    }
-
-    // Membuat bingkai jendela
-    box(mywin, 0, 0);
-
-    wrefresh(mywin);
 }
 
-// Menampilkan labirin dengan animasi
-void tampilkanMaze() {
 
-    // Warna dinding
-    wattron(mywin, COLOR_PAIR(4));
+// Memeriksa apakah posisi merupakan dinding
+bool posisiTembok(Maze maze, int x, int y) {
 
-    // Menampilkan dinding satu per satu 
-    for (int i = 0; i < BARIS; i++) {
-        for (int j = 0; j < KOLOM; j++) {
-            if (peta[i][j] == '#') {
-                mvwaddch(mywin, i + 1, j + 1, '#');
-                wrefresh(mywin);
-                napms(15); // Delay untuk animasi
-            }
-        }
+    // Posisi di luar maze di anggap dinding
+    if (x < 0 || x >= MAZE_KOLOM || y < 0 || y >= MAZE_BARIS) {
+        return true;
     }
 
-    wattroff(mywin, COLOR_PAIR(4));
-    wrefresh(mywin);
+    // Memeriksa pintu keluat
+    if (x == 29 && y == 13) {
+        return !maze.pintuKeluarTerbuka;
+    }
+
+    // Memeriksa apakah isi peta adalah dinding
+    if (maze.peta[y][x] == '#') {
+        return true;
+    }
+
+    return false;
 }
 
-// Menghapus jendela labirin
-void hapusMaze() {
 
-    if (mywin != NULL) {
-        delwin(mywin);
-        mywin = NULL;
-    }
-}   
+// Membuka pintu keluar
+void bukaPintuKeluar(Maze &maze) {
+    maze.pintuKeluarTerbuka = true;
+}
