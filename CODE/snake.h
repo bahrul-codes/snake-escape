@@ -1,23 +1,38 @@
 #ifndef SNAKE_H
 #define SNAKE_H
 
-const int MAX_UL = 100;
+#include <ncurses.h>
 
-// Posisi setiap bagian tubuh ular
-extern int posisiX[MAX_UL];
-extern int posisiY[MAX_UL];
+const int MAKS_PANJANG_ULAR = 450;
 
-// Panjang ular
-extern int panjangUlar;
+// Mengelompokkan seluruh data ular
+struct Ular {
 
-// Arah gerak ular
-extern int arahX;
-extern int arahY;
+    int posisiX[MAKS_PANJANG_ULAR];
+    int posisiY[MAKS_PANJANG_ULAR];
+    int panjang;
+    int arahX;
+    int arahY;
 
-// Fungsi ular
-void resetUlar();
-void gerakUlar();
-void tambahPanjangUlar();
-bool cekTabrakanUlar();
+};
+
+// Mengatur posisi awal ular
+void inisialisasiUlar(Ular &ular);
+
+// Menggambar ular di layar
+void gambarUlar(WINDOW* jendela, Ular ular);    
+
+// Mengubah arah gerak ular
+void ubahArahUlar(Ular &ular, int tombol);
+
+//Menggerakkan ular
+void gerakkanUlar(Ular &ular, bool tambahPanjang);
+
+// Memeriksa tabrakan ular dengan tubuhnya sendiri
+bool tabrakanDenganDiriSendiri(Ular ular);
+
+// Memeriksa apakah suatu posisi ditempati ular
+bool posisiAdaUlar(Ular ular, int x, int y);
 
 #endif
+
