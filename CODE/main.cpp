@@ -1,19 +1,20 @@
 #include <ncurses.h>
+#include "game.h"
 
 int main() {
+
+    // Mengaktifkan mode ncurses
     initscr();
     cbreak();
     noecho();
     keypad(stdscr, TRUE);
     curs_set(0);
 
-    mvprintw(1, 2, "SNAKE ESCAPE: THE MAZE CHALLENGE");
-    mvprintw(3, 2, "Project structure is ready!");
-    mvprintw(5, 2, "Press any key to exit...");
+    // Menjalankan gameplay
+    jalankanGame();
 
-    refresh();
-    getch();
-
+    // Mengakhiri ncurses
     endwin();
+
     return 0;
 }
