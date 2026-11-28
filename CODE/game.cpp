@@ -53,6 +53,7 @@ void jalankanGame() {
 
     int makananX, makananY;
 
+    // Membuat makanan pertama
     buatMakanan(maze, ular, makananX, makananY);
 
     bool gameSelesai = false;
@@ -94,7 +95,11 @@ void jalankanGame() {
             ubahArahUlar(ular, tombol);
         }
 
-        // Menghitung posisi ular memakan makanan
+        // Menghitung posisi kepala ular berikutnya
+        int nextX = ular.posisiX[0] + ular.arahX;
+        int nextY = ular.posisiY[0] + ular.arahY;
+
+        // Memeriksa apakah ular memakan makanan
         bool makan = (
             skor < TARGET &&
             nextX == makananX &&
@@ -108,7 +113,7 @@ void jalankanGame() {
         bool kenaTembok = posisiTembok (
             maze,
             ular.posisiX[0],
-            ular.posisiY[0],
+            ular.posisiY[0]
         );
 
         // Pintu keluar boleh dilewati setelah terbuka
@@ -177,7 +182,7 @@ void jalankanGame() {
     mvprintw(13, 18, "Press any key to exit...");
 
     refresh();
-    timeout();
+    timeout(-1);
     getch();
 }
 
