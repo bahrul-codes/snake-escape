@@ -46,7 +46,7 @@ void jalankanGame() {
     );
 
     keypad(jendela, TRUE);
-    wtimeout(jendela, 120);
+    wtimeout(jendela, 500);
 
     int skor = 0;
     const int TARGET = 7;
